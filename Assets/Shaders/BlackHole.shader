@@ -1,92 +1,75 @@
-﻿Shader "Unlit/BlackHole"
-{
-    Properties
-    {
-        _MainTex ("Texture", 2D) = "white" {}
-    }
-    SubShader
-    {
-        Tags {"Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent"}
-        ZWrite Off
-        Blend SrcAlpha OneMinusSrcAlpha
-        // No culling or depth
-        Cull Off ZWrite Off ZTest Always
+﻿Shader "BlackHole" {
+	
+	Properties
+	{
+		_MainTex("Base (RGB)", 2D) = "white" {}
+		_dist("Black & White blend", Range(0, 1)) = 0
+	}
 
-        Pass
-        {
-            CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
+	SubShader{
+	Pass{
+		CGPROGRAM
+		#pragma vertex vert_img
+		#pragma fragment frag
 
-            #include "UnityCG.cginc"
+		#include "UnityCG.cginc"
 
-            struct appdata
-            {
-                float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
-            };
+		uniform sampler2D _MainTex;
+		uniform float _dist;
+		uniform float2 screenPos;
+		uniform float IOR;
+		uniform float black_r1;
+		uniform float black_r2;
+		uniform float rad;
 
-            struct v2f
-            {
-                float2 uv : TEXCOORD0;
-                float4 vertex : SV_POSITION;
-            };
 
-            // Built-in properties
-            sampler2D _MainTex;   float4 _MainTex_TexelSize;
+		float4 frag(v2f_img i) : COLOR
+		{
+			float4 c;
 
-            // Global access to uv data
-            static v2f vertex_output;
+			float aspect = _ScreenParams.x / _ScreenParams.y;
+			float2 balanced = i.uv - screenPos;
+			balanced.x *= aspect;
+			float distance = length(balanced);
+			float2 balanced_n = balanced / distance;
+		
+			
+			if (distance < black_r1)
+			{
+				c = float4(0, 0, 0, 0); // absolutely black
+			}
+			else
+			{
+				float2 pos = i.uv;
+				pos.x = pos.x * _ScreenParams.x;
+				pos.y = pos.y * _ScreenParams.y;
+				float scaled = distance * _dist / rad;
+				float3 rayDirection = float3(0, 0, 1);
+				float3 surfaceNormal = normalize(float3(balanced_n, scaled * scaled));
+				float3 newBeam = refract(rayDirection, surfaceNormal, IOR);
+				float2 offset = float2(newBeam.x, newBeam.y) * 200;
+				
+				// radial
+				//float2 offsetR;
+				//float t = 0.035 / distance;
+				//offsetR.x = offset.x * cos(t) - offset.y * sin(t);
+				//offsetR.y = offset.x * sin(t) + offset.y * cos(t);
 
-            v2f vert (appdata v)
-            {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv =  v.uv;
-                return o;
-            }
+				float2 newPos = pos +  offset;
+				c = tex2D(_MainTex, newPos / _ScreenParams);
+				c *= length(newBeam);
+				c.a = 1.0f;
 
-            float3 rotateY(float3 p, float ang)
-            {
-                float s = sin(ang);
-                float c = cos(ang);
-                return float3(c*p.x+s*p.z, p.y, -s*p.x+c*p.z);
-            }
+				// blend between two circles
+				if (black_r1 < distance && distance < black_r2)
+				{
+					c = c * (distance - black_r1) / (black_r2 - black_r1);
+				}
+			}
 
-            float4 frag (v2f __vertex_output) : SV_Target
-            {
-                float2 uv = __vertex_output.uv/_ScreenParams.xy*2.-1.;
-                uv.x *= _ScreenParams.x/_ScreenParams.y;
-                
-                float type = clamp(-sin(_Time.y+0.2)*8., -1., 1.);
-                
-                float a = _Time.y/3.;
-                float3 ray = rotateY(float3(0., 0., -3.), a);
-                float3 rv = rotateY(normalize(float3(uv.x, uv.y, 1.)), a);
-                
-                float3 em = 0.;
-                bool hit = false;
-                
-                for (int i = 0;i<1000; i++)
-                {
-                    float st = length(ray)*0.01;
-                    ray += normalize(rv)*st;
-                    if (length(ray)<1.)
-                    {
-                        hit = true;
-                        break;
-                    }
-                    
-                    rv += -normalize(ray)*-type/exp(dot(ray, ray))*st;
-                    em += st*smoothstep(1.5, 1.2, length(ray))*0.2;
-                }
-                
-                float3 col = hit ? ((float3)type*0.5+0.5) : tex2D(_MainTex, normalize(rv)).rgb*0.8;
-                col += float3(0.3, 0., 1.)*max(em-0.1, 0.);
-
-                return float4(col, 1.);
-            }
-            ENDCG   
-        }
-    }
+			return c;
+		}
+		ENDCG
+	}
+	}
 }
