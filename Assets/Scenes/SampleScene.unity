@@ -162,8 +162,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shader: {fileID: 4800000, guid: cf74d6f7e55f8df229f2b9578822cbe2, type: 3}
   blackHole: {fileID: 1073029114}
-  ratio: 1
-  radius: 3
+  ratio: 0.25
+  radius: 0.25
 --- !u!20 &519420031
 Camera:
   m_ObjectHideFlags: 0

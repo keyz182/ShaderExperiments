@@ -4,14 +4,15 @@ using System.Collections;
 public class MoveTest : MonoBehaviour
 {
     public Vector3 pointB;
+    public float moveTime = 3.0f;
    
     IEnumerator Start()
     {
         var pointA = transform.position;
         while(true)
         {
-            yield return StartCoroutine(MoveObject(transform, pointA, pointB, 3.0f));
-            yield return StartCoroutine(MoveObject(transform, pointB, pointA, 3.0f));
+            yield return StartCoroutine(MoveObject(transform, pointA, pointB, moveTime));
+            yield return StartCoroutine(MoveObject(transform, pointB, pointA, moveTime));
         }
     }
    
