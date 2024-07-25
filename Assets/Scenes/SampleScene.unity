@@ -316,6 +316,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pointB: {x: 7, y: 0, z: 0}
+  moveTime: 3
 --- !u!1 &983661051
 GameObject:
   m_ObjectHideFlags: 0
@@ -427,7 +428,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9825a295b6222d978af6cdf5acddf38, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pointB: {x: 0, y: 5, z: 0}
+  pointB: {x: 5, y: 5, z: 0}
+  moveTime: 1
 --- !u!212 &1073029113
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -486,7 +488,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1073029110}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -5, z: 0}
+  m_LocalPosition: {x: -5, y: -5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
