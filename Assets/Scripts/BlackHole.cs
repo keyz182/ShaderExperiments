@@ -5,9 +5,9 @@ using UnityEngine.Serialization;
 public class BlackHole : MonoBehaviour
 {
     public Transform hole_object;
-    public float rad = 3f;
-    public float black_rad_1 = 1f; // radius where black color starts
-    public float black_rad_2 = 4f; // radius where black color starts blend with background
+    public float rad = 1f;
+    public float black_rad_1 = 0.25f; // radius where black color starts
+    public float black_rad_2 = 0.75f; // radius where black color starts blend with background
     public float ior = 0.38f;
 
     [FormerlySerializedAs("_material")] public Material material;
@@ -30,7 +30,7 @@ public class BlackHole : MonoBehaviour
         {
             screenPos = new Vector2(
                 GetComponent<Camera>().WorldToScreenPoint(hole_object.position).x / GetComponent<Camera>().pixelWidth,
-                1 - GetComponent<Camera>().WorldToScreenPoint(hole_object.position).y / GetComponent<Camera>().pixelHeight);
+                GetComponent<Camera>().WorldToScreenPoint(hole_object.position).y / GetComponent<Camera>().pixelHeight);
 
             distance = Vector3.Distance(hole_object.transform.position, transform.position);
         }
