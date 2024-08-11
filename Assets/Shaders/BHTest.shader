@@ -1,11 +1,10 @@
-﻿﻿Shader "Unlit/ZoomShader"
+﻿shader "Unlit/BHTest"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _Mask("Mask", 2D) = "white" {}
-        _Magnification("Magnification", Float) = 1
         _UVCenterOffset("UVCenterOffset", Vector) = (0,0,0,0)
+		_Rad("Radius", Range(0, 10)) = 1
     }
 
         SubShader
@@ -42,15 +41,13 @@
                 //our vertex position after projection
                 float4 vertex : SV_POSITION;
 
-                //our UV coordinate on the GrabTexture
-                float4 uv : TEXCOORD0;
-                float2 uv2 : TEXCOORD1;
-                float4 uv3 : TEXCOORD2;
+                float2 uv_MainTex : TEXCOORD0;
+                float4 GrabTexUV : TEXCOORD1;
             };
 
-            float4 _Mask_ST;
+            sampler2D _MainTex;
             sampler2D _GrabTexture;
-            sampler2D _Mask;
+            uniform float _Rad;
             half _Magnification;
             float4 _UVCenterOffset;
 
@@ -58,8 +55,8 @@
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
-
-                o.uv3 = ComputeGrabScreenPos(UnityObjectToClipPos(v.vertex));
+                
+                o.uv_MainTex = v.uv;
                 //the UV coordinate of our object's center on the GrabTexture
                 // float4 uv_center = ComputeGrabScreenPos(UnityObjectToClipPos(float4(0, 0, 0, 1)));
                 float4 uv_center = ComputeGrabScreenPos(UnityObjectToClipPos(float4(0, 0, 0, 1)));
@@ -67,34 +64,37 @@
                 uv_center += _UVCenterOffset;
                 //the vector from uv_center to our UV coordinate on the GrabTexture
                 float4 uv_diff = ComputeGrabScreenPos(o.vertex) - uv_center;
-                //apply magnification
-                uv_diff /= _Magnification;
-                //save result
-                o.uv = uv_center + uv_diff;
-                o.uv2 = TRANSFORM_TEX(v.uv2, _Mask);
+                o.GrabTexUV = uv_center + uv_diff;
                 return o;
             }
 
             fixed4 frag(v2f i) : COLOR
             {
-                fixed4 albedo = tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(i.uv));
+                //fixed4 mainTex = tex2D(_MainTex, i.uv_MainTex);
+                //fixed4 bg = tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(i.GrabTexUV));
+
+                float _dist = length(ObjSpaceViewDir(i.GrabTexUV));
                 
-                fixed4 bg = tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(i.uv3));
+			    float aspectRatio = _ScreenParams.x / _ScreenParams.y;
+			    float2 balanced = i.uv_MainTex - i.GrabTexUV;
+			    balanced.x *= aspectRatio;
+			    float distance = length(balanced);
+			    float2 balanced_n = balanced / distance;
+
+                float2 pos = i.GrabTexUV;
+				pos.x = pos.x * _ScreenParams.x;
+				pos.y = pos.y * _ScreenParams.y;
+				float scaled = distance * _dist / _Rad;
+				float3 rayDirection = float3(0, 0, 1);
+				float3 surfaceNormal = normalize(float3(balanced_n, scaled * scaled));
+				float3 newBeam = refract(rayDirection, surfaceNormal, 0.38);
+				float2 offset = float2(newBeam.x, newBeam.y) * 200;
+                float2 newPos = pos +  offset;
+				fixed4 c = tex2D(_GrabTexture, newPos / _ScreenParams);
+				c *= length(newBeam);
+				c.a = 1.0f;
                 
-                fixed4 mask = tex2D(_Mask, UNITY_PROJ_COORD(i.uv2));
-                float bgLevel = 1-mask.b;
-                float maskLevel = mask.a;
-                
-                if (maskLevel < 0.1)
-                {
-                    albedo = bg;
-                }
-                else
-                {
-                    albedo = ((1 - bgLevel)*albedo) + (bgLevel * mask);
-                }
-                                
-                return albedo;
+                return c;
             }
             ENDCG
         }
