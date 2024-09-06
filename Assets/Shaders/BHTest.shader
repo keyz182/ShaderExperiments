@@ -5,6 +5,8 @@
         _MainTex ("Texture", 2D) = "white" {}
         _UVCenterOffset("UVCenterOffset", Vector) = (0,0,0,0)
 		_Rad("Radius", Range(0, 10)) = 1
+		_BlackR1("black_r1", Range(0, 1)) = 0.05
+		_BlackR2("black_r2", Range(0, 1)) = 0.15
     }
 
         SubShader
@@ -48,6 +50,10 @@
             sampler2D _MainTex;
             sampler2D _GrabTexture;
             uniform float _Rad;
+            
+		    uniform float _BlackR1;
+		    uniform float _BlackR2;
+            
             half _Magnification;
             float4 _UVCenterOffset;
 
@@ -72,7 +78,8 @@
             {
                 //fixed4 mainTex = tex2D(_MainTex, i.uv_MainTex);
                 //fixed4 bg = tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(i.GrabTexUV));
-
+                fixed4 c;
+                
                 float _dist = length(ObjSpaceViewDir(i.GrabTexUV));
                 
 			    float aspectRatio = _ScreenParams.x / _ScreenParams.y;
@@ -90,9 +97,19 @@
 				float3 newBeam = refract(rayDirection, surfaceNormal, 0.38);
 				float2 offset = float2(newBeam.x, newBeam.y) * 200;
                 float2 newPos = pos +  offset;
-				fixed4 c = tex2D(_GrabTexture, newPos / _ScreenParams);
+				c = tex2D(_GrabTexture, newPos / _ScreenParams);
 				c *= length(newBeam);
 				c.a = 1.0f;
+
+                if(_BlackR1 < distance && distance < _BlackR2)
+                {
+                    c = c * (distance - _BlackR1) / (_BlackR2 - _BlackR1);
+                }
+
+                if(distance < _BlackR1)
+                {
+                    c = float4(0,0,0,0);
+                }
                 
                 return c;
             }
