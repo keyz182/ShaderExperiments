@@ -10,10 +10,11 @@
         LOD 100
         GrabPass{ "_GrabTexture" }
 
+        UsePass "Transparent/Diffuse/FORWARD"
         Pass
         {
             ZTest On
-            ZWrite Off
+            ZWrite On
             Blend One Zero
             Lighting Off
             Fog{ Mode Off }
@@ -55,7 +56,7 @@
                 float2 uv = p;
 	            float res = 1.;
                 for (int i = 0; i < 3; i++) {
-                    res += cos(uv.y*12.345 - _Time.x*4. + cos(res*12.234)*.2 + cos(uv.x*32.2345 + cos(uv.y*17.234)) ) + cos(uv.x*12.345);
+                    res += cos(uv.y*12.345 - _Time.x*32. + cos(res*12.234)*.2 + cos(uv.x*32.2345 + cos(uv.y*17.234)) ) + cos(uv.x*12.345);
     	            uv = uv.yx;
                     uv.x += res*.1;
                 }
@@ -72,7 +73,7 @@
                 float2 uv = p;
 	            float res = 1.;
                 for (int i = 0; i < 3; i++) {
-                    res += cos(uv.y*12.345 - _Time.x*4. + cos(res*12.234)*.2 + cos(uv.x*32.2345 + cos(uv.y*17.234)) ) + cos(uv.x*12.345);
+                    res += cos(uv.y*12.345 - _Time.x*32. + cos(res*12.234)*.2 + cos(uv.x*32.2345 + cos(uv.y*17.234)) ) + cos(uv.x*12.345);
     	            uv = uv.yx;
                     uv.x += res*.1;
                 }
@@ -95,7 +96,7 @@
                 fixed4 bg = tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(i.uv2));
                 
                 fixed4 tex = tex2D(_MainTex, UNITY_PROJ_COORD(i.uv));
-                float2 uv = i.vertex / _ScreenParams.xy - .05;
+                float2 uv = (i.vertex / _ScreenParams.xy - .05)/2;
                 
                 float3 lightDir = normalize(float3(sin(_Time.x),1.,cos(_Time.x)));
                 
@@ -109,14 +110,14 @@
 
                 fixed4 output = ((1- tex.a)*bg) + (tex.a * genned);
 
-                float2 noiseUv = uv * 100;// + float2(0.2, 1) * _Time.y;
+                float2 noiseUv = uv * 200;// + float2(0.2, 1) * _Time.y;
                 float3 noiseInput;
                 noiseInput.xy = noiseUv;
-                noiseInput.z = _Time.x*30;
+                noiseInput.z = _Time.x*60;
                 
                 float noise = SimplexNoise(noiseInput);
 
-                output.xyz = output.xyz * ((noise + 5) / 6);
+                output.xyz = output.xyz * ((noise + 4) / 6);
 
                 return output;
 

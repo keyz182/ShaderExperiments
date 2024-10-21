@@ -7,13 +7,13 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Unlit_LiquidMetalSimplex
-  m_Shader: {fileID: 4800000, guid: 4f811fc62f2b04ef9a2502314c81cda9, type: 3}
+  m_Name: Unlit_Shield
+  m_Shader: {fileID: 4800000, guid: 7f0dd0a9b12945a498330a78adeb7729, type: 3}
   m_ShaderKeywords: ETC1_EXTERNAL_ALPHA
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3001
+  m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -23,5 +23,11 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    m_Floats: []
-    m_Colors: []
+    m_Floats:
+    - _Edge: 2
+    - _FresnelBias: 1
+    - _FresnelPower: 0.1
+    - _FresnelScale: 2
+    m_Colors:
+    - _Color: {r: 0.13937107, g: 0.1981132, b: 0.012148457, a: 1}
+    - _FresnelColor: {r: 0.17221431, g: 0.18829186, b: 0.2830189, a: 1}
